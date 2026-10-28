@@ -1,0 +1,33 @@
+{
+  "rules": {
+    "roomIndex": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && ((!data.exists() && newData.val() === auth.uid) || (data.val() === auth.uid && !newData.exists()))"
+      }
+    },
+    "rooms": {
+      "$code": {
+        ".read": "auth != null && (data.child('members').child(auth.uid).exists() || root.child('roomIndex').child($code).exists())",
+        ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() === auth.uid && newData.child('members').child(auth.uid).exists() && newData.child('state').child('status').val() === 'lobby') || (data.child('hostUid').val() === auth.uid && !newData.exists()))",
+        "state": {
+          ".write": "auth != null && data.parent().child('hostUid').val() === auth.uid"
+        },
+        "members": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && ((!data.exists() && root.child('rooms').child($code).child('state').child('status').val() === 'lobby') || (data.exists() && !newData.exists() && root.child('rooms').child($code).child('state').child('status').val() === 'lobby'))",
+            ".validate": "newData.hasChildren(['name','team']) && newData.child('name').isString() && newData.child('team').isString() && newData.child('name').val().length <= 24 && newData.child('team').val().length <= 24"
+          }
+        },
+        "actions": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($code).child('members').child(auth.uid).exists()",
+            ".validate": "newData.hasChildren(['type','nonce']) && (newData.child('type').val() === 'bid' || newData.child('type').val() === 'pass') && newData.child('nonce').isString()"
+          }
+        }
+      }
+    }
+  }
+}
+
+
