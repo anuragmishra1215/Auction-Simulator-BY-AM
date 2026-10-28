@@ -158,7 +158,47 @@ const selected=teams[$('teamSelect').value||uid];$('selectedRoster').innerHTML=s
 if(!p){$('currentProfile').innerHTML=`<div class="eyebrow">${s.status==='complete'?'AUCTION COMPLETE':'Waiting for auction to start'}</div><h2>${s.status==='complete'?'Auction complete':'Players will appear here'}</h2>`;$('auctionCount').textContent=s.status==='complete'?'Complete':Object.keys(teams).length+' teams joined';$('currentPrice').textContent='—';$('currentLeader').textContent='';$('bidButton').disabled=true;$('passButton').disabled=true;$('skipButton').disabled=true;$('sellButton').disabled=true;return}
 const pid=s.order[s.currentIndex],soldCount=Object.keys(s.sold||{}).length+Object.keys(s.skipped||{}).length;$('auctionCount').textContent=(soldCount+1)+' / '+PLAYER_LIST.length+' offered';$('turnState').textContent=(teams[uid]?.roster?.length||0)>=11?'Team complete':s.passed?.[uid]?'You passed this player':s.highBidder===uid?'You are leading':'Bidding open';$('currentProfile').innerHTML=`<img class="player-photo" src="${escapeHtml(p.photo||'')}" alt="${escapeHtml(p.name)}" loading="eager"><div class="flag">${flags[p.country]||'🏏'}</div><h2>${escapeHtml(p.name)}</h2><span class="role-tag">${escapeHtml(p.role||'Batsman')}</span><div>${escapeHtml(p.country)} · International career</div><div class="stats"><div class="stat"><b>${Number(p.matches||0).toLocaleString()}</b><small>Matches</small></div><div class="stat"><b>${Number(p.runs||0).toLocaleString()}</b><small>Runs</small></div><div class="stat"><b>${Number(p.wickets||0).toLocaleString()}</b><small>Wickets</small></div><div class="stat"><b>${Number(p.hundreds||0).toLocaleString()}</b><small>100s</small></div></div><a class="source-link" href="${escapeHtml(p.source||'#')}" target="_blank" rel="noopener">Stats & photo: Cricbuzz</a>`;
 const amount=s.currentBid?s.currentBid+s.bidStep:s.bidStep;$('currentPrice').textContent=s.currentBid?cash(s.currentBid):'₹50 lakh';$('currentLeader').textContent=s.highBidder?`${escapeHtml(teams[s.highBidder]?.team||'A team')} is leading`:'Opening bid · ₹50 lakh';const mine=teams[uid],myRoster=Array.isArray(mine?.roster)?mine.roster:[];const teamComplete=myRoster.length>=11;const canAct=!!mine&&s.status==='auction'&&!teamComplete&&!s.passed?.[uid]&&s.highBidder!==uid;$('bidButton').textContent='Bid '+cash(amount);$('bidButton').disabled=!canAct||mine.budget<amount||myRoster.length>=11;$('passButton').disabled=!canAct;$('skipButton').disabled=!isHost||s.currentBid>0;$('sellButton').disabled=!isHost;$('skipButton').style.display=isHost?'inline-block':'none';$('sellButton').style.display=isHost?'inline-block':'none';$('undoButton').style.display=isHost?'inline-block':'none';
-$('gameMessage').textContent=teamComplete?'Your team has 11 players. Bidding and passing are disabled.':isHost?'You are the host. Keep this page open to process player bids.':'Bids update live for everyone in this room.'}
+$('gameMessage').textContent=teamComplete?'Your team has 11 players. Bidding and passing are disabled.':isHost?'You are the host. Keep this page open to process player bids.':'Bids update live for everyone in this room.';
+drawBattingOrder();
+}
+function drawBattingOrder(){
+
+  const team = roomState?.teams?.[uid];
+
+  if(!team) return;
+
+  const roster = team.roster || [];
+
+  $('battingOrder').innerHTML =
+    roster.map((p,i)=>`
+      <div class="entry">
+        <span class="grow">${i+1}. ${escapeHtml(p.name)}</span>
+
+        <button onclick="movePlayerUp(${i})">⬆</button>
+
+        <button onclick="movePlayerDown(${i})">⬇</button>
+      </div>
+    `).join('');
+}
+window.movePlayerUp=function(i){
+
+  const r=roomState.teams[uid].roster;
+
+  if(i===0)return;
+
+  [r[i-1],r[i]]=[r[i],r[i-1]];
+
+  drawBattingOrder();
+}window.movePlayerDown=function(i){
+
+  const r=roomState.teams[uid].roster;
+
+  if(i>=r.length-1)return;
+
+  [r[i],r[i+1]]=[r[i+1],r[i]];
+
+  drawBattingOrder();
+}
 function renderPlayers(){if(!roomState)return;const q=$('playerSearch').value.trim().toLowerCase(),filter=$('playerFilter').value;const entries=PLAYER_LIST.map((p,id)=>({p,id,status:playerStatus(id)})).filter(x=>(x.p.name+' '+x.p.country).toLowerCase().includes(q)&&(filter==='all'||x.status===filter));$('playersList').innerHTML=entries.map(({p,id,status})=>`<div class="entry"><div class="avatar"><img src="${escapeHtml(p.photo||'')}" alt="" loading="lazy">${flags[p.country]||'🏏'}</div><div class="grow"><b>${escapeHtml(p.name)}</b><small>${escapeHtml(p.country)} · ${Number(p.matches||0).toLocaleString()} matches · ${Number(p.runs||0).toLocaleString()} runs · ${Number(p.wickets||0).toLocaleString()} wkts · ${Number(p.hundreds||0)} 100s</small><span class="role-tag">${escapeHtml(p.role||'Batsman')}</span></div><span class="pill">${status==='sold'?'Sold · '+cash(roomState.sold[id].price):status==='passed'?'Passed':'Remaining'}</span></div>`).join('')||'<p class="help">No players match this filter.</p>';const tid=$('viewTeam').value||uid,t=roomState.teams?.[tid];$('teamRoster').innerHTML=t?.roster?.length?t.roster.map(x=>`<div class="entry"><b class="grow">${escapeHtml(x.name)}</b><b class="lime">${cash(x.price)}</b></div>`).join(''):'<p class="help">No purchases yet.</p>'}
 function resetToHome(){resetListeners();try{sessionStorage.removeItem('cricketAuctionRoomCode')}catch{}roomCode='';roomState=null;members={};page('home')}
 async function leaveRoom(){if(!roomCode)return resetToHome();try{if(isHost){await remove(ref(db,roomPath()));await remove(ref(db,'roomIndex/'+roomCode))}else if(roomState?.status==='lobby')await remove(ref(db,roomPath('members/'+uid)));}catch(e){console.warn(e)}resetToHome()}
