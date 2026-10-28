@@ -23,11 +23,12 @@ function page(id){document.querySelectorAll('.screen').forEach(e=>e.classList.re
 function cleanCode(s){return (s||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6)}
 function randCode(){let s='';for(let i=0;i<6;i++)s+=alphabet[Math.floor(Math.random()*alphabet.length)];return s}
 function escapeHtml(s){
-  return String(s??'').replace(/[&<>"']/g,c=>({
-    '&':'&amp;',
-    '<':'&lt;',
-    '>':'&gt;',
-    '"':'&quot;',"'":'&#39;'
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
   }[c]));
 }
 function cash(lakh){if(lakh<100)return '₹'+(lakh/100).toFixed(2).replace(/0$/,'')+' crore';return '₹'+(lakh/100).toFixed(Number.isInteger(lakh/100)?0:2)+' crore'}
@@ -98,11 +99,11 @@ async function processActions(actions){if(!isHost||!roomState||roomState.status!
 if(a.type==='bid'&&id!==updated.highBidder&&!updated.passed[id]&&team.budget>=amount&&(Array.isArray(team.roster)?team.roster.length:0)<11){updated.currentBid=amount;updated.highBidder=id;return resolveIfDone(updated)}
 if(a.type==='pass'&&id!==updated.highBidder){updated.passed[id]=true;return resolveIfDone(updated)}return updated;},{applyLocally:false});if(result.committed)roomState=result.snapshot.val();}drawGame()}
 async function sendAction(type){if(!roomCode||!roomState||roomState.status!=='auction')return toast('Auction is not running yet.',true);const my=roomState.teams?.[uid];if(!my)return toast('Your team is not in this room.',true);const nonce=uid+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);try{await set(ref(db,roomPath('actions/'+uid)),{type,nonce,createdAt:Date.now()});say('gameMessage',type==='bid'?'Bid sent. Waiting for the room to update.':'Pass sent. Waiting for the room to update.')}catch(e){say('gameMessage',friendly(e),true)}}
-async function advanceAuctionMusic(){if(!isHost||roomState?.status!=='auction')return;const expected=roomState.musicTrack||auctionMusic.dataset.track;const result=await runTransaction(ref(db,roomPath('state')),s=>{if(!s||s.status!=='auction'||(s.musicTrack&&s.musicTrack!==expected))return;let order=Array.isArray(s.musicOrder)&&s.musicOrder.length?s.musicOrder.slice():[];let index=Number.isInteger(s.musicIndex)?s.musicIndex+1:0;if(!order.length){order=shuffledTrackIds(expected);index=0}else if(index>=order.length){order=shuffledTrackIds(order[order.length-1]);index=0}return {...s,musicOrder:order,musicIndex:index,musicTrack:order[index]}},{applyLocally:false});if(!result.committed)throw new Error('Could not advance the shared music playlist.')}async function hostClose(skipOnly=false){
-   // existing hostClose code here
-}
+async function advanceAuctionMusic(){if(!isHost||roomState?.status!=='auction')return;const expected=roomState.musicTrack||auctionMusic.dataset.track;const result=await runTransaction(ref(db,roomPath('state')),s=>{if(!s||s.status!=='auction'||(s.musicTrack&&s.musicTrack!==expected))return;let order=Array.isArray(s.musicOrder)&&s.musicOrder.length?s.musicOrder.slice():[];let index=Number.isInteger(s.musicIndex)?s.musicIndex+1:0;if(!order.length){order=shuffledTrackIds(expected);index=0}else if(index>=order.length){order=shuffledTrackIds(order[order.length-1]);index=0}return {...s,musicOrder:order,musicIndex:index,musicTrack:order[index]}},{applyLocally:false});if(!result.committed)throw new Error('Could not advance the shared music playlist.')}
 
-  try{
+ async function undoLastSale(){
+   
+   try{
     await runTransaction(
       ref(db, roomPath('state')),
       s => {
