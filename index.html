@@ -20,6 +20,10 @@
   <h3>Batting Order</h3>
   <div id="battingOrder" class="list"></div>
 </div>
+  <div class="card">
+  <h3>Auction Awards 🏆</h3>
+  <div id="awardsPanel" class="list"></div>
+</div>
 <select id="teamSelect" style="width:155px"></select></div><p class="help">Player names and purchase prices</p><div id="selectedRoster" class="list"></div></div></aside></div></section>
 </main><div id="playersModal" class="modal"><div class="modalbox"><div class="between"><h2>Players & teams</h2><button id="closeModal" class="secondary">Close</button></div><div class="tabs"><button id="playersTab">Players</button><button id="teamsTab" class="secondary">Teams</button></div><div id="playersPane"><div class="toolbar"><input id="playerSearch" placeholder="Search player or country"><select id="playerFilter"><option value="remaining">Remaining players</option><option value="all">All players</option><option value="sold">Sold players</option></select></div><div id="playersList" class="list"></div></div><div id="teamsPane" style="display:none"><select id="viewTeam"></select><div id="teamRoster" class="list"></div></div></div></div><div id="toast" class="toast"></div><script type="module" src="./app.js"></script><script>if('serviceWorker'in navigator&&location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));</script></body></html>
 
