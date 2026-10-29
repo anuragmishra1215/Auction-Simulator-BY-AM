@@ -48,7 +48,49 @@ async function joinRoom(){try{await ensureAuth();const code=cleanCode($('roomCod
 function drawLobby(){if(!roomCode)return;const entries=Object.entries(members),started=roomState?.status==='auction'||roomState?.status==='complete';$('lobbyPlayers').innerHTML=entries.map(([id,p],i)=>`<div class="team"><div><b>${escapeHtml(p.team)}</b><small>${id===roomState?.hostUid?' · Host':''}</small></div><span class="grow">${escapeHtml(p.name)}</span><span class="pill">Joined</span></div>`).join('')||'<p class="help">Waiting for players…</p>';$('startAuction').style.display=isHost?'inline-block':'none';$('startAuction').textContent=started?(roomState?.status==='complete'?'View results':'Open auction'):'Start auction';$('startAuction').disabled=!isHost||(!started&&(entries.length<2||entries.length>8||roomState?.status!=='lobby'));$('leaveLobby').textContent=isHost?'Close room':'Leave room';if(roomState?.status==='lobby')say('lobbyMessage',`${entries.length} of 8 players joined. ${entries.length<2?'Need at least one more player.':'Ready to start.'}`)}
 async function startAuction(){try{if(roomState?.status==='auction'||roomState?.status==='complete'){drawGame();page('game');return}const teams={};for(const[id,m]of Object.entries(members))teams[id]={uid:id,name:m.name,team:m.team,budget:8000,roster:[]};const order=PLAYER_LIST.map((_,i)=>i);for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}say('lobbyMessage','Starting auction…');const result=await runTransaction(ref(db,roomPath('state')),s=>{if(!s||s.status!=='lobby'||Object.keys(teams).length<2||Object.keys(teams).length>8)return;const musicOrder=shuffledTrackIds();return {...s,status:'auction',teams,order,currentIndex:0,currentBid:0,highBidder:null,passed:{},sold:{},skipped:{},processed:{},musicOrder,musicIndex:0,musicTrack:musicOrder[0],startedAt:Date.now()}},{applyLocally:false});if(!result.committed){const latest=await get(ref(db,roomPath('state')));roomState=latest.val();if(roomState?.status==='auction'||roomState?.status==='complete'){drawGame();page('game');return}drawLobby();say('lobbyMessage','Could not start. Confirm 2–8 players are joined, then try again.',true);return}roomState=result.snapshot.val();drawLobby();drawGame();page('game')}catch(e){say('lobbyMessage',friendly(e),true)}}function rosterCount(team){return Array.isArray(team?.roster)?team.roster.length:0}
 function allTeamsComplete(s){const ids=Object.keys(s?.teams||{});return ids.length>0&&ids.every(id=>rosterCount(s.teams[id])>=11)}
-function nextPlayer(s){if(allTeamsComplete(s)){s.status='complete';s.currentIndex=s.order.length;s.currentBid=0;s.highBidder=null;s.passed={};return s}s.currentIndex+=1;s.currentBid=0;s.highBidder=null;s.passed=Object.fromEntries(Object.entries(s.teams||{}).filter(([,team])=>rosterCount(team)>=11).map(([id])=>[id,true]));if(s.currentIndex>=s.order.length)s.status='complete';return s}
+function fillIncompleteTeams(s){
+
+  const unsold = [];
+
+  for(let i=0;i<PLAYER_LIST.length;i++){
+
+    if(
+      !s.sold?.[i] &&
+      !s.skipped?.[i]
+    ){
+      unsold.push(i);
+    }
+  }
+
+  for(const team of Object.values(s.teams||{})){
+
+    while(
+      (team.roster?.length||0) < 11 &&
+      unsold.length
+    ){
+
+      const randomIndex =
+        Math.floor(Math.random()*unsold.length);
+
+      const playerId =
+        unsold.splice(randomIndex,1)[0];
+
+      team.roster.push({
+        playerId,
+        name: PLAYER_LIST[playerId].name,
+        price: 0
+      });
+    }
+  }
+
+  return s;
+}
+function nextPlayer(s){if(allTeamsComplete(s)){s.status='complete';s.currentIndex=s.order.length;s.currentBid=0;s.highBidder=null;s.passed={};return s}s.currentIndex+=1;s.currentBid=0;s.highBidder=null;s.passed=Object.fromEntries(Object.entries(s.teams||{}).filter(([,team])=>rosterCount(team)>=11).map(([id])=>[id,true]));if(s.currentIndex>=s.order.length){
+
+  fillIncompleteTeams(s);
+
+  s.status='complete';
+}return s}
 function finishPlayer(s, skip) {
   const playerId = s.order[s.currentIndex],
         buyer = s.highBidder;
@@ -201,30 +243,24 @@ function drawBattingOrder(){
 
   const roster = team.roster || [];
 
-  const slots = [
-    'Opener',
-    'Opener',
-    'Middle Order',
-    'Middle Order',
-    'All Rounder',
-    'All Rounder',
-    'All Rounder',
-    'Bowler',
-    'Bowler',
-    'Bowler',
-    'Bowler'
-  ];
-
   $('battingOrder').innerHTML =
-    slots.map((slot,i)=>{
+    Array.from({length:11},(_,i)=>{
 
       const player = roster[i];
 
       return `
         <div class="entry">
+
           <div class="grow">
-            <b>${i+1}. ${slot}</b><br>
-            ${player ? escapeHtml(player.name) : 'Empty Slot'}
+
+            <b>Slot ${i+1}</b><br>
+
+            ${
+              player
+              ? escapeHtml(player.name)
+              : 'Empty Slot'
+            }
+
           </div>
 
           <button onclick="movePlayerUp(${i})">
@@ -234,6 +270,7 @@ function drawBattingOrder(){
           <button onclick="movePlayerDown(${i})">
             ⬇
           </button>
+
         </div>
       `;
     }).join('');
