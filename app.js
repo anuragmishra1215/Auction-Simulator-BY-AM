@@ -191,6 +191,7 @@ $('bidButton').textContent = 'Bid ' + cash(amount);
 $('bidButton').disabled = !canAct || (mine?.budget || 0) < amount || teamComplete || !hasEnoughWithReserve;$('passButton').disabled=!canAct;$('skipButton').disabled=!isHost||s.currentBid>0;$('sellButton').disabled=!isHost;$('skipButton').style.display=isHost?'inline-block':'none';$('sellButton').style.display=isHost?'inline-block':'none';$('undoButton').style.display=isHost?'inline-block':'none';
 $('gameMessage').textContent=teamComplete?'Your team has 11 players. Bidding and passing are disabled.':isHost?'You are the host. Keep this page open to process player bids.':'Bids update live for everyone in this room.';
 drawBattingOrder();
+drawAwards();
 }
 function drawBattingOrder(){
 
@@ -200,16 +201,42 @@ function drawBattingOrder(){
 
   const roster = team.roster || [];
 
+  const slots = [
+    'Opener',
+    'Opener',
+    'Middle Order',
+    'Middle Order',
+    'All Rounder',
+    'All Rounder',
+    'All Rounder',
+    'Bowler',
+    'Bowler',
+    'Bowler',
+    'Bowler'
+  ];
+
   $('battingOrder').innerHTML =
-    roster.map((p,i)=>`
-      <div class="entry">
-        <span class="grow">${i + 1}. ${escapeHtml(p.name)}</span>
+    slots.map((slot,i)=>{
 
-        <button onclick="movePlayerUp(${i})">⬆</button>
+      const player = roster[i];
 
-        <button onclick="movePlayerDown(${i})">⬇</button>
-      </div>
-    `).join('');
+      return `
+        <div class="entry">
+          <div class="grow">
+            <b>${i+1}. ${slot}</b><br>
+            ${player ? escapeHtml(player.name) : 'Empty Slot'}
+          </div>
+
+          <button onclick="movePlayerUp(${i})">
+            ⬆
+          </button>
+
+          <button onclick="movePlayerDown(${i})">
+            ⬇
+          </button>
+        </div>
+      `;
+    }).join('');
 }
 
 window.movePlayerUp = function(i){
@@ -221,7 +248,6 @@ window.movePlayerUp = function(i){
   [r[i-1], r[i]] = [r[i], r[i-1]];
 
   drawBattingOrder();
-  drawAwards();
 };
 
 window.movePlayerDown = function(i){
