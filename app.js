@@ -155,7 +155,27 @@ function resetListeners(){unsub.forEach(fn=>fn());unsub=[]}
 function setRoom(code,host){resetListeners();roomCode=code;isHost=host;roomState=null;members={};try{sessionStorage.setItem('cricketAuctionRoomCode',code)}catch{}listenRoom();$('codeDisplay').textContent=code;$('gameCode').textContent=code;page('lobby')}
 function roomPath(part=''){return `rooms/${roomCode}${part?'/'+part:''}`}
 
-function listenRoom(){
+function listenRoom(){// Inside your listenRoom() function, add this line:
+unsub.push(onValue(ref(db, `rooms/${roomCode}/chat`), snap => {
+  const msgs = snap.val() || {};
+  const container = $('chatMessages');
+  
+  const entries = Object.values(msgs).sort((a, b) => a.timestamp - b.timestamp);
+  
+  if (entries.length === 0) {
+    container.innerHTML = '<p class="help" style="margin: auto;">No messages yet. Say hello!</p>';
+    return;
+  }
+
+  container.innerHTML = entries.map(m => `
+    <div style="word-break: break-word;">
+      <b style="color: var(--lime);">${escapeHtml(m.sender)}:</b> ${escapeHtml(m.text)}
+    </div>
+  `).join('');
+
+  // Auto-scroll to the bottom of the chat box
+  container.scrollTop = container.scrollHeight;
+}, err => console.error(err)));
   unsub.push(onValue(ref(db,roomPath('members')),snap=>{members=snap.val()||{};drawLobby();drawGame();},err=>say('message','Could not read room members: '+err.message,true)));
   unsub.push(onValue(ref(db,roomPath('state')),snap=>{roomState=snap.val();if(!roomState)return;if(isHost&&roomState.status==='auction'&&allTeamsComplete(roomState)){runTransaction(ref(db,roomPath('state')),s=>s&&s.status==='auction'&&allTeamsComplete(s)?{...s,status:'complete',currentIndex:s.order?.length||0,currentBid:0,highBidder:null,passed:{}}:undefined,{applyLocally:false}).catch(e=>say('gameMessage',friendly(e),true))}drawLobby();drawGame();if(roomState.status==='auction'||roomState.status==='complete')page('game');else page('lobby');if(isHost&&roomState.status==='auction')get(ref(db,roomPath('actions'))).then(x=>processActions(x.val()||{})).catch(e=>say('gameMessage',friendly(e),true));},err=>say('message','Could not read room: '+err.message,true)));
   if(isHost)unsub.push(onValue(ref(db,roomPath('actions')),snap=>{applying=applying.then(()=>processActions(snap.val()||{})).catch(err=>say('gameMessage','Could not process a bid: '+err.message,true));}));
@@ -681,3 +701,9 @@ if(appReady){
   showConnection('Setup needed',false);
   say('message','The live app needs a Firebase project. Follow README.txt.',true)
 }
+$('sendChatBtn').onclick = sendChatMessage;
+$('chatInput').onkeydown = (e) => {
+  if (e.key === 'Enter') {
+    sendChatMessage();
+  }
+};
