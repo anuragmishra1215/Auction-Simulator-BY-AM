@@ -96,7 +96,24 @@ return nextPlayer(s);
 function resolveIfDone(s){
   const teamIds = Object.keys(s.teams || {});if(allTeamsComplete(s)){s.status='complete';s.currentIndex=s.order.length;s.currentBid=0;s.highBidder=null;s.passed={};return s}for(const id of teamIds)if(rosterCount(s.teams[id])>=11)s.passed[id]=true;const activeIds=teamIds.filter(id=>rosterCount(s.teams[id])<11);const done=activeIds.every(id=>id===s.highBidder||s.passed?.[id]);if(done)return finishPlayer(s,s.highBidder===null);return s}
 async function processActions(actions){if(!isHost||!roomState||roomState.status!=='auction')return;for(const[id,a]of Object.entries(actions).sort((x,y)=>(x[1]?.createdAt||0)-(y[1]?.createdAt||0))){if(!a?.nonce||roomState.processed?.[id]===a.nonce)continue;const current=roomState;const result=await runTransaction(ref(db,roomPath('state')),s=>{if(!s||s.status!=='auction'||s.processed?.[id]===a.nonce)return;const updated={...s,teams:{...s.teams},passed:{...(s.passed||{})},processed:{...(s.processed||{})},sold:{...(s.sold||{})},skipped:{...(s.skipped||{})}};const team=updated.teams[id];updated.processed[id]=a.nonce;if(!team)return updated;const amount=updated.currentBid?updated.currentBid+updated.bidStep:updated.bidStep;
-if(a.type==='bid'&&id!==updated.highBidder&&!updated.passed[id]&&team.budget>=amount&&(Array.isArray(team.roster)?team.roster.length:0)<11){updated.currentBid=amount;updated.highBidder=id;return resolveIfDone(updated)}
+if (a.type === 'bid' && id !== updated.highBidder && !updated.passed[id]) {
+  const currentRoster = Array.isArray(team.roster) ? team.roster : [];
+  const rosterCount = currentRoster.length;
+
+  if (rosterCount < 11 && team.budget >= amount) {
+    // Automatically enforce that they leave 50 lakh for every other player needed
+    const playersNeeded = 11 - rosterCount;
+    const futureBudget = team.budget - amount;
+    const remainingSlotsAfterThisBid = Math.max(0, playersNeeded - 1);
+    const reservedNeeded = remainingSlotsAfterThisBid * 50;
+
+    if (futureBudget >= reservedNeeded) {
+      updated.currentBid = amount;
+      updated.highBidder = id;
+      return resolveIfDone(updated);
+    }
+  }
+}
 if(a.type==='pass'&&id!==updated.highBidder){updated.passed[id]=true;return resolveIfDone(updated)}return updated;},{applyLocally:false});if(result.committed)roomState=result.snapshot.val();}drawGame()}
 async function sendAction(type){if(!roomCode||!roomState||roomState.status!=='auction')return toast('Auction is not running yet.',true);const my=roomState.teams?.[uid];if(!my)return toast('Your team is not in this room.',true);const nonce=uid+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);try{await set(ref(db,roomPath('actions/'+uid)),{type,nonce,createdAt:Date.now()});say('gameMessage',type==='bid'?'Bid sent. Waiting for the room to update.':'Pass sent. Waiting for the room to update.')}catch(e){say('gameMessage',friendly(e),true)}}
 async function advanceAuctionMusic(){if(!isHost||roomState?.status!=='auction')return;const expected=roomState.musicTrack||auctionMusic.dataset.track;const result=await runTransaction(ref(db,roomPath('state')),s=>{if(!s||s.status!=='auction'||(s.musicTrack&&s.musicTrack!==expected))return;let order=Array.isArray(s.musicOrder)&&s.musicOrder.length?s.musicOrder.slice():[];let index=Number.isInteger(s.musicIndex)?s.musicIndex+1:0;if(!order.length){order=shuffledTrackIds(expected);index=0}else if(index>=order.length){order=shuffledTrackIds(order[order.length-1]);index=0}return {...s,musicOrder:order,musicIndex:index,musicTrack:order[index]}},{applyLocally:false});if(!result.committed)throw new Error('Could not advance the shared music playlist.')}
@@ -157,7 +174,21 @@ function drawGame(){if(!roomState||!roomCode)return;const s=roomState,teams=s.te
 const selected=teams[$('teamSelect').value||uid];$('selectedRoster').innerHTML=selected?.roster?.length?selected.roster.map(x=>`<div class="entry"><b class="grow">${escapeHtml(x.name)}</b><b class="lime">${cash(x.price)}</b></div>`).join(''):'<p class="help">No players bought yet.</p>';
 if(!p){$('currentProfile').innerHTML=`<div class="eyebrow">${s.status==='complete'?'AUCTION COMPLETE':'Waiting for auction to start'}</div><h2>${s.status==='complete'?'Auction complete':'Players will appear here'}</h2>`;$('auctionCount').textContent=s.status==='complete'?'Complete':Object.keys(teams).length+' teams joined';$('currentPrice').textContent='—';$('currentLeader').textContent='';$('bidButton').disabled=true;$('passButton').disabled=true;$('skipButton').disabled=true;$('sellButton').disabled=true;return}
 const pid=s.order[s.currentIndex],soldCount=Object.keys(s.sold||{}).length+Object.keys(s.skipped||{}).length;$('auctionCount').textContent=(soldCount+1)+' / '+PLAYER_LIST.length+' offered';$('turnState').textContent=(teams[uid]?.roster?.length||0)>=11?'Team complete':s.passed?.[uid]?'You passed this player':s.highBidder===uid?'You are leading':'Bidding open';$('currentProfile').innerHTML=`<img class="player-photo" src="${escapeHtml(p.photo||'')}" alt="${escapeHtml(p.name)}" loading="eager"><div class="flag">${flags[p.country]||'🏏'}</div><h2>${escapeHtml(p.name)}</h2><span class="role-tag">${escapeHtml(p.role||'Batsman')}</span><div>${escapeHtml(p.country)} · International career</div><div class="stats"><div class="stat"><b>${Number(p.matches||0).toLocaleString()}</b><small>Matches</small></div><div class="stat"><b>${Number(p.runs||0).toLocaleString()}</b><small>Runs</small></div><div class="stat"><b>${Number(p.wickets||0).toLocaleString()}</b><small>Wickets</small></div><div class="stat"><b>${Number(p.hundreds||0).toLocaleString()}</b><small>100s</small></div></div><a class="source-link" href="${escapeHtml(p.source||'#')}" target="_blank" rel="noopener">Stats & photo: Cricbuzz</a>`;
-const amount=s.currentBid?s.currentBid+s.bidStep:s.bidStep;$('currentPrice').textContent=s.currentBid?cash(s.currentBid):'₹50 lakh';$('currentLeader').textContent=s.highBidder?`${escapeHtml(teams[s.highBidder]?.team||'A team')} is leading`:'Opening bid · ₹50 lakh';const mine=teams[uid],myRoster=Array.isArray(mine?.roster)?mine.roster:[];const teamComplete=myRoster.length>=11;const canAct=!!mine&&s.status==='auction'&&!teamComplete&&!s.passed?.[uid]&&s.highBidder!==uid;$('bidButton').textContent='Bid '+cash(amount);$('bidButton').disabled=!canAct||mine.budget<amount||myRoster.length>=11;$('passButton').disabled=!canAct;$('skipButton').disabled=!isHost||s.currentBid>0;$('sellButton').disabled=!isHost;$('skipButton').style.display=isHost?'inline-block':'none';$('sellButton').style.display=isHost?'inline-block':'none';$('undoButton').style.display=isHost?'inline-block':'none';
+const amount=s.currentBid?s.currentBid+s.bidStep:s.bidStep;$('currentPrice').textContent=s.currentBid?cash(s.currentBid):'₹50 lakh';$('currentLeader').textContent=s.highBidder?`${escapeHtml(teams[s.highBidder]?.team||'A team')} is leading`:'Opening bid · ₹50 lakh';const mine = teams[uid], myRoster = Array.isArray(mine?.roster) ? mine.roster : [];
+const teamComplete = myRoster.length >= 11;
+
+// Automatically calculate reserve requirement
+const playersNeeded = 11 - myRoster.length;
+const futureBudget = (mine?.budget || 0) - amount;
+const remainingSlotsAfterThisBid = Math.max(0, playersNeeded - 1);
+const reservedNeeded = remainingSlotsAfterThisBid * 50; // 50 lakh per remaining slot
+const hasEnoughWithReserve = futureBudget >= reservedNeeded;
+
+const canAct = !!mine && s.status === 'auction' && !teamComplete && !s.passed?.[uid] && s.highBidder !== uid;
+
+$('bidButton').textContent = 'Bid ' + cash(amount);
+// Automatically disable if team is full, doesn't have enough money, or breaks the reserve rule
+$('bidButton').disabled = !canAct || (mine?.budget || 0) < amount || teamComplete || !hasEnoughWithReserve;$('passButton').disabled=!canAct;$('skipButton').disabled=!isHost||s.currentBid>0;$('sellButton').disabled=!isHost;$('skipButton').style.display=isHost?'inline-block':'none';$('sellButton').style.display=isHost?'inline-block':'none';$('undoButton').style.display=isHost?'inline-block':'none';
 $('gameMessage').textContent=teamComplete?'Your team has 11 players. Bidding and passing are disabled.':isHost?'You are the host. Keep this page open to process player bids.':'Bids update live for everyone in this room.';
 drawBattingOrder();
 }
