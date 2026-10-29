@@ -192,7 +192,28 @@ function friendly(e){const m=e?.message||String(e);if(m.includes('permission_den
 function drawLobby(){if(!roomCode)return;const entries=Object.entries(members),started=roomState?.status==='auction'||roomState?.status==='complete';$('lobbyPlayers').innerHTML=entries.map(([id,p],i)=>`<div class="team"><div><b>${escapeHtml(p.team)}</b><small>${id===roomState?.hostUid?' · Host':''}</small></div><span class="grow">${escapeHtml(p.name)}</span><span class="pill">Joined</span></div>`).join('')||'<p class="help">Waiting for players…</p>';$('startAuction').style.display=isHost?'inline-block':'none';$('startAuction').textContent=started?(roomState?.status==='complete'?'View results':'Open auction'):'Start auction';$('startAuction').disabled=!isHost||(!started&&(entries.length<2||entries.length>8||roomState?.status!=='lobby'));$('leaveLobby').textContent=isHost?'Close room':'Leave room';if(roomState?.status==='lobby')say('lobbyMessage',`${entries.length} of 8 players joined. ${entries.length<2?'Need at least one more player.':'Ready to start.'}`)}
 
 async function startAuction(){try{if(roomState?.status==='auction'||roomState?.status==='complete'){drawGame();page('game');return}const teams={};for(const[id,m]of Object.entries(members))teams[id]={uid:id,name:m.name,team:m.team,budget:8000,roster:[]};const order=PLAYER_LIST.map((_,i)=>i);for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}say('lobbyMessage','Starting auction…');const result=await runTransaction(ref(db,roomPath('state')),s=>{if(!s||s.status!=='lobby'||Object.keys(teams).length<2||Object.keys(teams).length>8)return;const musicOrder=shuffledTrackIds();return {...s,status:'auction',teams,order,currentIndex:0,currentBid:0,highBidder:null,passed:{},sold:{},skipped:{},processed:{},musicOrder,musicIndex:0,musicTrack:musicOrder[0],startedAt:Date.now()}},{applyLocally:false});if(!result.committed){const latest=await get(ref(db,roomPath('state')));roomState=latest.val();if(roomState?.status==='auction'||roomState?.status==='complete'){drawGame();page('game');return}drawLobby();say('lobbyMessage','Could not start. Confirm 2–8 players are joined, then try again.',true);return}roomState=result.snapshot.val();drawLobby();drawGame();page('game')}catch(e){say('lobbyMessage',friendly(e),true)}}
+async function sendChatMessage() {
+  const input = $('chatInput');
+  const text = input.value.trim();
+  if(!text || !roomCode) return;
 
+  // Find sender's name / team name from members list
+  const myMember = members[uid] || { name: 'Player', team: 'Team' };
+  const senderName = `${myMember.team} (${myMember.name})`;
+
+  try {
+    const chatRef = ref(db, `rooms/${roomCode}/chat`);
+    const newMsgRef = push(chatRef); // Firebase helper to create unique message IDs
+    await set(newMsgRef, {
+      sender: senderName,
+      text: text,
+      timestamp: Date.now()
+    });
+    input.value = ''; // Clear input field
+  } catch(e) {
+    toast('Could not send message.', true);
+  }
+}
 function rosterCount(team){return Array.isArray(team?.roster)?team.roster.length:0}
 function allTeamsComplete(s){const ids=Object.keys(s?.teams||{});return ids.length>0&&ids.every(id=>rosterCount(s.teams[id])>=11)}
 
