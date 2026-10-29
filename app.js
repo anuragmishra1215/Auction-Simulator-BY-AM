@@ -1,6 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
-import { getDatabase, ref, get, set, update, remove, onValue, runTransaction } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js';
+import { getDatabase, ref, get, set, update, remove, onValue, runTransaction, push } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js';
 import { firebaseConfig } from './firebase-config.js';
 import { PLAYERS } from './players.js';
 
