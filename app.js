@@ -221,6 +221,7 @@ window.movePlayerUp = function(i){
   [r[i-1], r[i]] = [r[i], r[i-1]];
 
   drawBattingOrder();
+  drawAwards();
 };
 
 window.movePlayerDown = function(i){
@@ -233,6 +234,92 @@ window.movePlayerDown = function(i){
 
   drawBattingOrder();
 };
+function drawAwards(){
+
+  if(!roomState) return;
+
+  const sold = roomState.sold || {};
+  const teams = roomState.teams || {};
+
+  let mostExpensive = null;
+  let bargain = null;
+
+  Object.entries(sold).forEach(([pid,data])=>{
+
+    const player = PLAYER_LIST[pid];
+
+    if(!player) return;
+
+    const item = {
+      name: player.name,
+      price: data.price
+    };
+
+    if(!mostExpensive || item.price > mostExpensive.price){
+      mostExpensive = item;
+    }
+
+    if(!bargain || item.price < bargain.price){
+      bargain = item;
+    }
+  });
+
+  let highestPurseTeam = '';
+  let highestPurse = -1;
+
+  Object.values(teams).forEach(t=>{
+    if((t.budget||0) > highestPurse){
+      highestPurse = t.budget||0;
+      highestPurseTeam = t.team;
+    }
+  });
+
+  let fastestTeam = '';
+  let fastestCount = -1;
+
+  Object.values(teams).forEach(t=>{
+    const count = t.roster?.length || 0;
+
+    if(count > fastestCount){
+      fastestCount = count;
+      fastestTeam = t.team;
+    }
+  });
+
+  $('awardsPanel').innerHTML = `
+    <div class="entry">
+      🏆 Most Expensive Player
+      <br>
+      <b>
+      ${mostExpensive?.name || '-'}
+      </b>
+      (${mostExpensive ? cash(mostExpensive.price) : '-'})
+    </div>
+
+    <div class="entry">
+      💎 Best Bargain Buy
+      <br>
+      <b>
+      ${bargain?.name || '-'}
+      </b>
+      (${bargain ? cash(bargain.price) : '-'})
+    </div>
+
+    <div class="entry">
+      💰 Highest Remaining Purse
+      <br>
+      <b>${highestPurseTeam || '-'}</b>
+      (${highestPurse >= 0 ? cash(highestPurse) : '-'})
+    </div>
+
+    <div class="entry">
+      ⚡ Fastest Team Completion
+      <br>
+      <b>${fastestTeam || '-'}</b>
+      (${fastestCount}/11)
+    </div>
+  `;
+}
 function renderPlayers(){if(!roomState)return;const q=$('playerSearch').value.trim().toLowerCase(),filter=$('playerFilter').value;const entries=PLAYER_LIST.map((p,id)=>({p,id,status:playerStatus(id)})).filter(x=>(x.p.name+' '+x.p.country).toLowerCase().includes(q)&&(filter==='all'||x.status===filter));$('playersList').innerHTML=entries.map(({p,id,status})=>`<div class="entry"><div class="avatar"><img src="${escapeHtml(p.photo||'')}" alt="" loading="lazy">${flags[p.country]||'🏏'}</div><div class="grow"><b>${escapeHtml(p.name)}</b><small>${escapeHtml(p.country)} · ${Number(p.matches||0).toLocaleString()} matches · ${Number(p.runs||0).toLocaleString()} runs · ${Number(p.wickets||0).toLocaleString()} wkts · ${Number(p.hundreds||0)} 100s</small><span class="role-tag">${escapeHtml(p.role||'Batsman')}</span></div><span class="pill">${status==='sold'?'Sold · '+cash(roomState.sold[id].price):status==='passed'?'Passed':'Remaining'}</span></div>`).join('')||'<p class="help">No players match this filter.</p>';const tid=$('viewTeam').value||uid,t=roomState.teams?.[tid];$('teamRoster').innerHTML=t?.roster?.length?t.roster.map(x=>`<div class="entry"><b class="grow">${escapeHtml(x.name)}</b><b class="lime">${cash(x.price)}</b></div>`).join(''):'<p class="help">No purchases yet.</p>'}
 function resetToHome(){resetListeners();try{sessionStorage.removeItem('cricketAuctionRoomCode')}catch{}roomCode='';roomState=null;members={};page('home')}
 async function leaveRoom(){if(!roomCode)return resetToHome();try{if(isHost){await remove(ref(db,roomPath()));await remove(ref(db,'roomIndex/'+roomCode))}else if(roomState?.status==='lobby')await remove(ref(db,roomPath('members/'+uid)));}catch(e){console.warn(e)}resetToHome()}
