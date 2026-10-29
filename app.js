@@ -50,35 +50,34 @@ async function startAuction(){try{if(roomState?.status==='auction'||roomState?.s
 function allTeamsComplete(s){const ids=Object.keys(s?.teams||{});return ids.length>0&&ids.every(id=>rosterCount(s.teams[id])>=11)}
 function fillIncompleteTeams(s){
 
-  const unsold = [];
+  const available = [];
 
-  for(let i=0;i<PLAYER_LIST.length;i++){
+  Object.keys(s.skipped || {}).forEach(id=>{
+    available.push(Number(id));
+  });
 
-    if(
-      !s.sold?.[i] &&
-      !s.skipped?.[i]
-    ){
-      unsold.push(i);
-    }
-  }
-
-  for(const team of Object.values(s.teams||{})){
+  for(const team of Object.values(s.teams || {})){
 
     while(
-      (team.roster?.length||0) < 11 &&
-      unsold.length
+      (team.roster?.length || 0) < 11 &&
+      available.length
     ){
 
       const randomIndex =
-        Math.floor(Math.random()*unsold.length);
+        Math.floor(Math.random() * available.length);
 
       const playerId =
-        unsold.splice(randomIndex,1)[0];
+        available.splice(randomIndex,1)[0];
+
+      if(!Array.isArray(team.roster)){
+        team.roster = [];
+      }
 
       team.roster.push({
         playerId,
         name: PLAYER_LIST[playerId].name,
-        price: 0
+        price:0,
+        autoFilled:true
       });
     }
   }
@@ -243,8 +242,22 @@ function drawBattingOrder(){
 
   const roster = team.roster || [];
 
+  const placeholders = [
+    'Opening Batter',
+    'Opening Batter',
+    'Top Order',
+    'Middle Order',
+    'Middle Order',
+    'Finisher',
+    'Finisher',
+    'Bowler',
+    'Bowler',
+    'Bowler',
+    'Bowler'
+  ];
+
   $('battingOrder').innerHTML =
-    Array.from({length:11},(_,i)=>{
+    Array.from({length:11}, (_,i) => {
 
       const player = roster[i];
 
@@ -253,29 +266,21 @@ function drawBattingOrder(){
 
           <div class="grow">
 
-            <b>Slot ${i+1}</b><br>
-
             ${
               player
-              ? escapeHtml(player.name)
-              : 'Empty Slot'
+                ? `<b>${escapeHtml(player.name)}</b>`
+                : `<span style="opacity:.45">${placeholders[i]}</span>`
             }
 
           </div>
 
-          <button onclick="movePlayerUp(${i})">
-            ⬆
-          </button>
-
-          <button onclick="movePlayerDown(${i})">
-            ⬇
-          </button>
+          <button onclick="movePlayerUp(${i})">⬆</button>
+          <button onclick="movePlayerDown(${i})">⬇</button>
 
         </div>
       `;
     }).join('');
 }
-
 window.movePlayerUp = function(i){
 
   const r = roomState.teams[uid].roster;
