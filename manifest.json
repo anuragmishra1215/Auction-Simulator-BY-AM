@@ -1,10 +1,10 @@
 {
-  "id": "/your-repository-name/",
+  "id": "/Auction-Simulator-BY-AM/",
   "name": "Cricket Auction",
   "short_name": "Cricket Auction",
   "description": "Play a live cricket player auction with friends.",
-  "start_url": "/your-repository-name/",
-  "scope": "/your-repository-name/",
+  "start_url": "/Auction-Simulator-BY-AM/",
+  "scope": "/Auction-Simulator-BY-AM/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
