@@ -155,30 +155,26 @@ function resetListeners(){unsub.forEach(fn=>fn());unsub=[]}
 function setRoom(code,host){resetListeners();roomCode=code;isHost=host;roomState=null;members={};try{sessionStorage.setItem('cricketAuctionRoomCode',code)}catch{}listenRoom();$('codeDisplay').textContent=code;$('gameCode').textContent=code;page('lobby')}
 function roomPath(part=''){return `rooms/${roomCode}${part?'/'+part:''}`}
 
-// --- Automatic Sale & Unsold Celebration Triggers ---
-let lastProcessedIndex = -1;
-let lastUnsoldIndex = -1;
+// --- Robust Animation Trigger Tracking ---
+let lastHandledSaleId = null;
+let lastHandledUnsoldId = null;
 
 function checkAndTriggerSaleAnimation(s) {
   if (!s) return;
 
-  // 1. Handle Sold Animation
-  if (s.lastSale) {
-    const currentSaleKey = s.currentIndex + '-' + s.lastSale.playerId + '-' + s.lastSale.price;
-    if (lastProcessedIndex !== currentSaleKey) {
-      lastProcessedIndex = currentSaleKey;
-      const teamName = s.teams[s.lastSale.uid]?.team || 'Team';
-      triggerSoldSaleAnimation(s.lastSale.playerName, teamName, cash(s.lastSale.price));
-    }
+  // 1. Handle Sold Trigger
+  if (s.lastSale && s.lastSale.eventId !== lastHandledSaleId) {
+    lastHandledSaleId = s.lastSale.eventId;
+    lastHandledUnsoldId = null; // Reset unsold tracking
+    const teamName = s.teams[s.lastSale.uid]?.team || 'Team';
+    triggerSoldSaleAnimation(s.lastSale.playerName, teamName, cash(s.lastSale.price));
   }
 
-  // 2. Handle Unsold Animation
-  if (s.lastUnsold) {
-    const currentUnsoldKey = s.currentIndex + '-' + s.lastUnsold.playerId;
-    if (lastUnsoldIndex !== currentUnsoldKey) {
-      lastUnsoldIndex = currentUnsoldKey;
-      triggerUnsoldAnimation(s.lastUnsold.playerName);
-    }
+  // 2. Handle Unsold Trigger
+  if (s.lastUnsold && s.lastUnsold.eventId !== lastHandledUnsoldId) {
+    lastHandledUnsoldId = s.lastUnsold.eventId;
+    lastHandledSaleId = null; // Reset sold tracking
+    triggerUnsoldAnimation(s.lastUnsold.playerName);
   }
 }
 
@@ -362,6 +358,7 @@ function finishPlayer(s, skip) {
   if (skip || buyer === null) {
     s.skipped[playerId] = true;
     s.lastUnsold = {
+      eventId: 'unsold-' + playerId + '-' + Date.now(),
       playerId,
       playerName: PLAYER_LIST[playerId].name
     };
@@ -371,6 +368,7 @@ function finishPlayer(s, skip) {
     if (!t || t.budget < s.currentBid || (Array.isArray(t.roster) ? t.roster.length : 0) >= 11) {
       s.skipped[playerId] = true;
       s.lastUnsold = {
+        eventId: 'unsold-' + playerId + '-' + Date.now(),
         playerId,
         playerName: PLAYER_LIST[playerId].name
       };
@@ -385,6 +383,7 @@ function finishPlayer(s, skip) {
       });
       delete s.lastUnsold;
       s.lastSale = {
+        eventId: 'sale-' + playerId + '-' + Date.now(),
         playerId,
         uid: buyer,
         price: s.currentBid,
@@ -575,6 +574,8 @@ function drawGame(){
 
   const canAct = !!mine && s.status === 'auction' && !teamComplete && !s.passed?.[uid] && s.highBidder !== uid;
 
+  $('bidButton').style.display = 'inline-block';
+  $('passButton').style.display = 'inline-block';
   $('bidButton').textContent = 'Bid ' + cash(amount);
   $('bidButton').disabled = !canAct || (mine?.budget || 0) < amount || teamComplete || !hasEnoughWithReserve;
   $('passButton').disabled=!canAct;
