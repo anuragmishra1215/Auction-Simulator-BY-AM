@@ -137,7 +137,7 @@ function shuffledTrackIds(avoidFirst=null){
     [ids[0], ids[j]] = [ids[j], ids[0]]; // Fixed: added closing bracket here
   }
   return ids;
-}}
+}
 
 const $ = (id) => document.getElementById(id);
 const flags = {India:'🇮🇳','South Africa':'🇿🇦','New Zealand':'🇳🇿',England:'🏴',Bangladesh:'🇧🇩','Sri Lanka':'🇱🇰',Pakistan:'🇵🇰','West Indies':'🏏',Australia:'🇦🇺'};
