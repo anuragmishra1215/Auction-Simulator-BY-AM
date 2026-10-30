@@ -3,9 +3,9 @@
 <style>.player-photo{position:absolute;right:24px;top:18px;width:130px;height:130px;object-fit:cover;object-position:top;border-radius:50%;border:3px solid #ffffffbb;box-shadow:0 8px 24px #0008;z-index:1}.profile:after{pointer-events:none}.profile>div:not(.flag):not(.stats){position:relative;z-index:1}.stat{background:#111111;border-color:var(--line)}.role-tag{display:inline-flex;align-items:center;width:max-content;background:var(--lime);color:#000000;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:850;margin-top:5px;position:relative;z-index:1}.entry .role-tag{margin:0 4px 0 0;flex:none}.source-link{position:relative;z-index:1;margin-top:8px;color:#ff8585;font-size:11px;width:max-content}.avatar{position:relative;flex:none;overflow:hidden}.avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 :root {
   --bg: #000000;            /* Pure, deep absolute black background */
-  --panel: #111111;          /* Dark grey for cards and containers */
+  --panel: #161616;          /* Slightly lighter dark grey for cards so they stand out */
   --line: #333333;           /* Darker border lines */
-  --card-bg: linear-gradient(145deg, #111111, #0a0a0a);
+  --card-bg: linear-gradient(145deg, #161616, #0a0a0a);
   --ink: #FFFFFF;            /* Pure white text */
   --muted: #AAAAAA;          /* Muted grey text */
   --lime: #FF3131;           /* Neon Red accent color */
@@ -13,7 +13,7 @@
   --amber: #FFC46A;          /* Alert amber */
 }
 
-/* Fix Secondary Buttons (Players & teams, Leave room, Play music) */
+/* Fix Secondary Buttons */
 button.secondary {
   background: var(--panel) !important;
   color: var(--ink) !important;
@@ -31,11 +31,115 @@ button.secondary:hover {
   border-color: var(--line) !important;
 }
 
-/* Fix Player Profile Card Background (Absolute Black & Dark Red Tint) */
+/* Fix Player Profile Card Background */
 .profile {
-  background: linear-gradient(130deg, #1f0505, #111111 75%) !important;
+  background: linear-gradient(130deg, #260808, #161616 75%) !important;
   border: 1px solid var(--line);
 }
 
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#190a0a,var(--bg) 56%);color:var(--ink);font:15px/1.45 system-ui,Segoe UI,sans-serif}.wrap{max-width:1160px;margin:auto;padding:22px}header,.between,.row,.team,.entry{display:flex;align-items:center;gap:12px}.between{justify-content:space-between}.brand{font-weight:900;font-size:19px}.mark{background:var(--lime);color:#000000;border-radius:12px;padding:9px 12px}.sub,.help,small{color:var(--muted)}.card{background:linear-gradient(145deg,#111111,#0a0a0a);border:1px solid var(--line);border-radius:18px;padding:20px;margin:12px 0}.screen{display:none}.screen.on{display:block}.hero{max-width:800px;margin:4vh auto}.hero h1{font-size:clamp(38px,7vw,56px);line-height:1.02;margin:8px 0;letter-spacing:-2px}.lime{color:var(--lime)}.eyebrow{color:var(--lime);font-weight:850;letter-spacing:1.5px;font-size:12px}button{border:0;border-radius:11px;padding:12px 16px;font-weight:800;cursor:pointer;background:var(--lime);color:#000000}button.secondary{background:#111111;color:var(--ink);border:1px solid var(--line)}button.danger{background:#49262d;color:#ffd0d0;border:1px solid #74424a}button:disabled{opacity:.4;cursor:not-allowed}input,select{background:#0a0a0a;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px;width:100%;font:inherit}.field{display:block;margin:10px 0;color:#c7d0d6;font-size:13px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}.pill{border:1px solid var(--line);padding:7px 10px;border-radius:20px;color:var(--muted);font-size:12px;white-space:nowrap}.team{justify-content:space-between;background:#111111;border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0}.team input{width:min(32%,220px)}.auction{display:grid;grid-template-columns:1.4fr .9fr;gap:12px}.flag{font-size:36px;position:relative;z-index:1}.profile h2{font-size:clamp(32px,5vw,42px);margin:6px 0;position:relative;z-index:1}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:14px;position:relative;z-index:1}.stat{background:#0a0a0aaa;border:1px solid var(--line);border-radius:9px;padding:9px}.stat b{display:block}.price{text-align:center;font-size:36px;font-weight:900;color:var(--lime);margin:12px}.controls{text-align:center}.controls button{margin:4px}.list{max-height:440px;overflow:auto}.entry{background:#111111;border:1px solid var(--line);border-radius:10px;padding:9px;margin:7px 0}.grow{flex:1}.avatar{width:38px;height:38px;border-radius:10px;background:#222222;display:grid;place-items:center;font-size:20px}.modal{position:fixed;inset:0;background:#000b;display:none;place-items:center;padding:18px;z-index:9}.modal.open{display:grid}.modalbox{background:#111111;border:1px solid var(--line);border-radius:18px;padding:20px;width:min(720px,100%);max-height:88vh;overflow:auto}.tabs{display:flex;gap:8px;margin-bottom:12px}.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--lime);color:#000000;padding:11px 17px;border-radius:10px;display:none;font-weight:800;z-index:12;max-width:90vw}.toast.show{display:block}.error{color:var(--red)}.statusline{min-height:22px;color:var(--muted);font-size:13px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar>*{flex:1;min-width:160px}.count{color:var(--amber)}.music-controls{margin:12px 0;padding:12px 16px}.music-controls .row{align-items:center;flex-wrap:wrap;justify-content:flex-end}.music-controls select{width:min(280px,100%);flex:1 1 180px}.music-controls button{flex:none}.music-controls .field{flex:none}.music-controls input[type=range]{width:120px;padding:0;accent-color:var(--lime)}@media(max-width:760px){.auction,.cols{grid-template-columns:1fr}.hero{margin-top:2vh}.team{flex-wrap:wrap}.team input{width:calc(50% - 8px);flex:1}.stats{grid-template-columns:1fr 1fr}.topactions{display:flex;flex-wrap:wrap}}
-</style></head><body><main class="wrap"><header><div class="mark">CA</div><div class="brand">CRICKET AUCTION<div class
+*{box-sizing:border-box}body{margin:0;background:#000000;color:var(--ink);font:15px/1.45 system-ui,Segoe UI,sans-serif}.wrap{max-width:1160px;margin:auto;padding:22px}header,.between,.row,.team,.entry{display:flex;align-items:center;gap:12px}.between{justify-content:space-between}.brand{font-weight:900;font-size:19px}.mark{background:var(--lime);color:#000000;border-radius:12px;padding:9px 12px}.sub,.help,small{color:var(--muted)}.card{background:linear-gradient(145deg,#161616,#0a0a0a);border:1px solid var(--line);border-radius:18px;padding:20px;margin:12px 0}.screen{display:none}.screen.on{display:block}.hero{max-width:800px;margin:4vh auto}.hero h1{font-size:clamp(38px,7vw,56px);line-height:1.02;margin:8px 0;letter-spacing:-2px}.lime{color:var(--lime)}.eyebrow{color:var(--lime);font-weight:850;letter-spacing:1.5px;font-size:12px}button{border:0;border-radius:11px;padding:12px 16px;font-weight:800;cursor:pointer;background:var(--lime);color:#000000}button.secondary{background:#161616;color:var(--ink);border:1px solid var(--line)}button.danger{background:#49262d;color:#ffd0d0;border:1px solid #74424a}button:disabled{opacity:.4;cursor:not-allowed}input,select{background:#0a0a0a;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px;width:100%;font:inherit}.field{display:block;margin:10px 0;color:#c7d0d6;font-size:13px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}.pill{border:1px solid var(--line);padding:7px 10px;border-radius:20px;color:var(--muted);font-size:12px;white-space:nowrap}.team{justify-content:space-between;background:#161616;border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0}.team input{width:min(32%,220px)}.auction{display:grid;grid-template-columns:1.4fr .9fr;gap:12px}.flag{font-size:36px;position:relative;z-index:1}.profile h2{font-size:clamp(32px,5vw,42px);margin:6px 0;position:relative;z-index:1}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:14px;position:relative;z-index:1}.stat{background:#0a0a0aaa;border:1px solid var(--line);border-radius:9px;padding:9px}.stat b{display:block}.price{text-align:center;font-size:36px;font-weight:900;color:var(--lime);margin:12px}.controls{text-align:center}.controls button{margin:4px}.list{max-height:440px;overflow:auto}.entry{background:#161616;border:1px solid var(--line);border-radius:10px;padding:9px;margin:7px 0}.grow{flex:1}.avatar{width:38px;height:38px;border-radius:10px;background:#222222;display:grid;place-items:center;font-size:20px}.modal{position:fixed;inset:0;background:#000b;display:none;place-items:center;padding:18px;z-index:9}.modal.open{display:grid}.modalbox{background:#161616;border:1px solid var(--line);border-radius:18px;padding:20px;width:min(720px,100%);max-height:88vh;overflow:auto}.tabs{display:flex;gap:8px;margin-bottom:12px}.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--lime);color:#000000;padding:11px 17px;border-radius:10px;display:none;font-weight:800;z-index:12;max-width:90vw}.toast.show{display:block}.error{color:var(--red)}.statusline{min-height:22px;color:var(--muted);font-size:13px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar>*{flex:1;min-width:160px}.count{color:var(--amber)}.music-controls{margin:12px 0;padding:12px 16px}.music-controls .row{align-items:center;flex-wrap:wrap;justify-content:flex-end}.music-controls select{width:min(280px,100%);flex:1 1 180px}.music-controls button{flex:none}.music-controls .field{flex:none}.music-controls input[type=range]{width:120px;padding:0;accent-color:var(--lime)}@media(max-width:760px){.auction,.cols{grid-template-columns:1fr}.hero{margin-top:2vh}.team{flex-wrap:wrap}.team input{width:calc(50% - 8px);flex:1}.stats{grid-template-columns:1fr 1fr}.topactions{display:flex;flex-wrap:wrap}}
+</style></head><body><main class="wrap"><header><div class="mark">CA</div><div class="brand">CRICKET AUCTION<div class="sub">Live rooms · Build your playing XI</div></div><span id="connection" class="pill" style="margin-left:auto">Connecting…</span></header>
+<section id="home" class="screen on"><div class="card hero"><div class="eyebrow">PLAY TOGETHER, FROM YOUR PHONES</div><h1>Your cricket auction.<br>Your <span class="lime">team.</span></h1><p class="help">Create a room, share its code, and bid live with 2–8 players. Every team starts with ₹80 crore and builds an 11-player squad.</p><div class="cols"><div class="card"><h3>Create a room</h3><label class="field">Your name<input id="hostName" maxlength="24" placeholder="Your name"></label><label class="field">Your team name<input id="hostTeam" maxlength="24" placeholder="Your team name"></label><button id="createRoom">Create room</button></div><div class="card"><h3>Join a room</h3><label class="field">Room code<input id="roomCodeInput" maxlength="6" placeholder="6-character code" autocomplete="off"></label><label class="field">Your name<input id="joinName" maxlength="24" placeholder="Your name"></label><label class="field">Your team name<input id="joinTeam" maxlength="24" placeholder="Your team name"></label><button id="joinRoom" class="secondary">Join room</button></div></div><p id="message" class="statusline"></p><p class="help">No account required. Players join as guests with a room code.</p></div></section>
+<section id="lobby" class="screen"><div class="card"><div class="between"><div><div class="eyebrow">ROOM LOBBY</div><h2 style="margin:4px 0">Invite your players</h2></div><div class="pill">CODE <b id="codeDisplay" style="color:var(--lime);letter-spacing:2px"></b> <button id="copyCode" class="secondary" style="padding:5px 8px">Copy</button></div></div><p class="help">Share the code. The auction starts when 2–8 players have joined.</p><div id="lobbyPlayers" class="list"></div><div class="row" style="margin-top:14px"><button id="startAuction">Start auction</button><button id="leaveLobby" class="secondary">Leave room</button></div><p id="lobbyMessage" class="statusline"></p></div></section>
+
+<section id="game" class="screen">
+  <div class="between">
+    <div>
+      <div class="eyebrow">LIVE AUCTION</div>
+      <h2 style="margin:4px 0">Build your playing XI</h2>
+      <span class="pill">Room <b id="gameCode" class="lime"></b></span>
+    </div>
+    <div class="topactions">
+      <button id="playersTeams" class="secondary">☷ Players & teams</button>
+      <button id="leaveGame" class="secondary">Leave room</button>
+    </div>
+  </div>
+
+  <div class="card music-controls">
+    <div class="between">
+      <div>
+        <b>♪ Auction music</b>
+        <div id="musicTrackName" class="sub">Songs will play in shuffled order</div>
+        <div id="musicState" class="sub">Host starts the playlist; everyone taps Play on their phone</div>
+      </div>
+      <div class="row">
+        <button id="musicToggle" class="secondary">▶ Play music</button>
+        <label class="field" style="margin:0;min-width:105px">Volume<input id="musicVolume" type="range" min="0" max="100" value="25" aria-label="Music volume"></label>
+      </div>
+    </div>
+    <audio id="auctionMusic" preload="none"></audio>
+  </div>
+
+  <div class="auction">
+    <div class="card">
+      <div class="between"><span id="auctionCount" class="pill"></span><span id="turnState" class="pill">Waiting</span></div>
+      <div id="currentProfile" class="profile"></div>
+      <div class="price" id="currentPrice">₹50 lakh</div>
+      <div id="currentLeader" class="sub" style="text-align:center"></div>
+      <div class="controls">
+        <div class="row" style="justify-content:center;flex-wrap:wrap">
+          <select id="myTeamAction" style="width:200px"></select>
+          <button id="bidButton">Bid ₹50 lakh</button>
+          <button id="passButton" class="secondary">Pass</button>
+        </div>
+        <div class="row" style="justify-content:center">
+          <button id="skipButton" class="secondary">Skip · no bids</button>
+          <button id="sellButton" class="secondary">Close bidding</button>
+          <button id="undoButton" class="secondary">Undo Last Sale</button>
+        </div>
+        <p id="gameMessage" class="statusline"></p>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <h3>Teams <small>· purse left</small></h3>
+        <div id="teamSummary" class="list"></div>
+      </div>
+
+      <div class="card">
+        <div class="between">
+          <h3>Team purchases</h3>
+          <select id="teamSelect"></select>
+        </div>
+        <div id="selectedRoster" class="list"></div>
+      </div>
+
+      <div class="card">
+        <h3>Batting Order</h3>
+        <div id="battingOrder" class="list"></div>
+      </div>
+
+      <div class="card">
+        <h3>Auction Awards 🏆</h3>
+        <div id="awardsPanel" class="list"></div>
+      </div>
+
+      <!-- Live Room Chat Component -->
+      <div class="card" style="display: flex; flex-direction: column; height: 220px;">
+        <h3 style="margin-bottom: 8px; font-size: 1rem;">💬 Room Chat</h3>
+        <div id="chatMessages" style="flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+          <p class="help" style="margin: auto;">No messages yet. Say hello!</p>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="chatInput" placeholder="Type a message..." maxlength="120" style="flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);">
+          <button id="sendChatBtn" style="padding: 6px 14px; border-radius: 6px; background: var(--lime); color: #000; font-weight: bold; border: none; cursor: pointer;">Send</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+</main>
+
+<div id="playersModal" class="modal">
+  <div class="modalbox">
+    <div class="between"><h2>Players & teams</h2><button id="closeModal" class="secondary">Close</button></div>
+    <div class="tabs"><button id="playersTab">Players</button><button id="teamsTab" class="secondary">Teams</button></div>
+    <div id="playersPane"><div class="toolbar"><input id="playerSearch" placeholder="Search player or country"><select id="playerFilter"><option value="remaining">Remaining players</option><option value="all">All players</option><option value="sold">Sold players</option></select></div><div id="playersList" class="list"></div></div>
+    <div id="teamsPane" style="display:none"><select id="viewTeam"></select><div id="teamRoster" class="list"></div></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script type="module" src="./app.js"></script>
+<script>if('serviceWorker'in navigator&&location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));</script></body></html>
