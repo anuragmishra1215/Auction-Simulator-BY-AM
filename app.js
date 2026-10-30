@@ -155,26 +155,23 @@ function resetListeners(){unsub.forEach(fn=>fn());unsub=[]}
 function setRoom(code,host){resetListeners();roomCode=code;isHost=host;roomState=null;members={};try{sessionStorage.setItem('cricketAuctionRoomCode',code)}catch{}listenRoom();$('codeDisplay').textContent=code;$('gameCode').textContent=code;page('lobby')}
 function roomPath(part=''){return `rooms/${roomCode}${part?'/'+part:''}`}
 
-// --- Robust Animation Trigger Tracking ---
-let lastHandledSaleId = null;
-let lastHandledUnsoldId = null;
+// --- Reliable Animation Trigger System ---
+let lastProcessedEventId = null;
 
 function checkAndTriggerSaleAnimation(s) {
   if (!s) return;
 
-  // 1. Handle Sold Trigger
-  if (s.lastSale && s.lastSale.eventId !== lastHandledSaleId) {
-    lastHandledSaleId = s.lastSale.eventId;
-    lastHandledUnsoldId = null; // Reset unsold tracking
-    const teamName = s.teams[s.lastSale.uid]?.team || 'Team';
-    triggerSoldSaleAnimation(s.lastSale.playerName, teamName, cash(s.lastSale.price));
-  }
+  // Check latest event marker from state
+  const activeEvent = s.lastSale || s.lastUnsold;
+  if (!activeEvent || activeEvent.eventId === lastProcessedEventId) return;
 
-  // 2. Handle Unsold Trigger
-  if (s.lastUnsold && s.lastUnsold.eventId !== lastHandledUnsoldId) {
-    lastHandledUnsoldId = s.lastUnsold.eventId;
-    lastHandledSaleId = null; // Reset sold tracking
-    triggerUnsoldAnimation(s.lastUnsold.playerName);
+  lastProcessedEventId = activeEvent.eventId;
+
+  if (activeEvent.type === 'sold') {
+    const teamName = s.teams[activeEvent.uid]?.team || 'Team';
+    triggerSoldSaleAnimation(activeEvent.playerName, teamName, cash(activeEvent.price));
+  } else if (activeEvent.type === 'unsold') {
+    triggerUnsoldAnimation(activeEvent.playerName);
   }
 }
 
@@ -332,8 +329,6 @@ function fillIncompleteTeams(s){
 }
 
 function nextPlayer(s){
-  delete s.lastSale;
-  delete s.lastUnsold;
   if(allTeamsComplete(s)){
     s.status='complete';
     s.currentIndex=s.order.length;
@@ -359,6 +354,7 @@ function finishPlayer(s, skip) {
     s.skipped[playerId] = true;
     s.lastUnsold = {
       eventId: 'unsold-' + playerId + '-' + Date.now(),
+      type: 'unsold',
       playerId,
       playerName: PLAYER_LIST[playerId].name
     };
@@ -369,6 +365,7 @@ function finishPlayer(s, skip) {
       s.skipped[playerId] = true;
       s.lastUnsold = {
         eventId: 'unsold-' + playerId + '-' + Date.now(),
+        type: 'unsold',
         playerId,
         playerName: PLAYER_LIST[playerId].name
       };
@@ -384,6 +381,7 @@ function finishPlayer(s, skip) {
       delete s.lastUnsold;
       s.lastSale = {
         eventId: 'sale-' + playerId + '-' + Date.now(),
+        type: 'sold',
         playerId,
         uid: buyer,
         price: s.currentBid,
@@ -541,7 +539,7 @@ function drawGame(){
   $('myTeamAction').innerHTML=opts;
   $('myTeamAction').value=uid;
 
-  const selected=teams[$('teamSelect').value||uid];
+  const selected=teams[$('teamSelect'].value||uid];
   $('selectedRoster').innerHTML=selected?.roster?.length?selected.roster.map(x=>`<div class="entry"><b class="grow">${escapeHtml(x.name)}</b><b class="lime">${cash(x.price)}</b></div>`).join(''):'<p class="help">No players bought yet.</p>';
 
   if(!p){
