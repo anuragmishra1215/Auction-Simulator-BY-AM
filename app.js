@@ -647,18 +647,42 @@ function drawBattingOrder(){
   }).join('');
 }
 
-window.movePlayerUp = function(i){
-  const r = roomState.teams[uid].roster;
-  if(i === 0) return;
+async function saveBattingOrderToFirebase(newRoster) {
+  if (!roomCode || !uid) return;
+  try {
+    const teamRosterRef = ref(db, `rooms/${roomCode}/state/teams/${uid}/roster`);
+    await set(teamRosterRef, newRoster);
+  } catch (e) {
+    toast('Could not sync batting order to server.', true);
+  }
+}
+
+window.movePlayerUp = async function(i){
+  const team = roomState?.teams?.[uid];
+  if(!team || !Array.isArray(team.roster)) return;
+  const r = team.roster;
+  if(i === 0 || i >= r.length) return;
+  
+  // Swap players locally
   [r[i-1], r[i]] = [r[i], r[i-1]];
+  
+  // Redraw screen immediately and persist to Firebase
   drawBattingOrder();
+  await saveBattingOrderToFirebase(r);
 };
 
-window.movePlayerDown = function(i){
-  const r = roomState.teams[uid].roster;
-  if(i >= r.length - 1) return;
+window.movePlayerDown = async function(i){
+  const team = roomState?.teams?.[uid];
+  if(!team || !Array.isArray(team.roster)) return;
+  const r = team.roster;
+  if(i < 0 || i >= r.length - 1) return;
+  
+  // Swap players locally
   [r[i], r[i+1]] = [r[i+1], r[i]];
+  
+  // Redraw screen immediately and persist to Firebase
   drawBattingOrder();
+  await saveBattingOrderToFirebase(r);
 };
 
 function drawAwards(){
