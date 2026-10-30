@@ -126,7 +126,18 @@ button.secondary:hover {
   <button id="installAppBtn" class="secondary" style="display:none; margin-left:auto; padding:6px 12px; font-size:13px;">📲 Install App</button>
   <span id="connection" class="pill">Connecting…</span>
 </header>
-<section id="home" class="screen on"><div class="card hero"><div class="eyebrow">PLAY TOGETHER, FROM YOUR PHONES</div><h1>Your cricket auction.<br>Your <span class="lime">team.</span></h1><p class="help">Create a room, share its code, and bid live with 2–8 players. Every team starts with ₹80 crore and builds an 11-player squad.</p><div class="cols"><div class="card"><h3>Create a room</h3><label class="field">Your name<input id="hostName" maxlength="24" placeholder="Your name"></label><label class="field">Your team name<input id="hostTeam" maxlength="24" placeholder="Your team name"></label><button id="createRoom">Create room</button></div><div class="card"><h3>Join a room</h3><label class="field">Room code<input id="roomCodeInput" maxlength="6" placeholder="6-character code" autocomplete="off"></label><label class="field">Your name<input id="joinName" maxlength="24" placeholder="Your name"></label><label class="field">Your team name<input id="joinTeam" maxlength="24" placeholder="Your team name"></label><button id="joinRoom" class="secondary">Join room</button></div></div><p id="message" class="statusline"></p><p class="help">No account required. Players join as guests with a room code.</p></div></section>
+<section id="home" class="screen on">
+  <div class="card hero">
+    <div class="eyebrow">PLAY TOGETHER, FROM YOUR PHONES</div>
+    <h1>Your cricket auction.<br>Your <span class="lime">team.</span></h1>
+    
+    <!-- Creator Credit Badge Added Here -->
+    <div style="font-size: 13px; color: var(--amber); font-weight: 700; margin: 6px 0 12px 0; letter-spacing: 0.5px;">
+      ✨ Created & Developed by Anurag Mishra
+    </div>
+
+    <p class="help">Create a room, share its code, and bid live with 2–8 players. Every team starts with ₹80 crore and builds an 11-player squad.</p>
+    <div class="cols"><div class="card"><h3>Create a room</h3><label class="field">Your name<input id="hostName" maxlength="24" placeholder="Your name"></label><label class="field">Your team name<input id="hostTeam" maxlength="24" placeholder="Your team name"></label><button id="createRoom">Create room</button></div><div class="card"><h3>Join a room</h3><label class="field">Room code<input id="roomCodeInput" maxlength="6" placeholder="6-character code" autocomplete="off"></label><label class="field">Your name<input id="joinName" maxlength="24" placeholder="Your name"></label><label class="field">Your team name<input id="joinTeam" maxlength="24" placeholder="Your team name"></label><button id="joinRoom" class="secondary">Join room</button></div></div><p id="message" class="statusline"></p><p class="help">No account required. Players join as guests with a room code.</p></div></section>
 <section id="lobby" class="screen">
   <div class="card">
     <div class="between">
