@@ -134,7 +134,7 @@ function shuffledTrackIds(avoidFirst=null){
   }
   if(avoidFirst && ids.length > 1 && ids[0] === avoidFirst){
     const j = 1 + Math.floor(Math.random() * (ids.length - 1));
-    [ids[0], ids[j]] = [ids[j], ids[0]]; // Fixed: added closing bracket here
+    [ids[0], ids[j]] = [ids[j], ids[0]];
   }
   return ids;
 }
@@ -163,6 +163,7 @@ function cash(lakh){if(lakh<100)return '₹'+(lakh/100).toFixed(2).replace(/0$/,
 function currentPlayer(s=roomState){if(!s||!s.order||s.currentIndex>=s.order.length)return null;return PLAYER_LIST[s.order[s.currentIndex]]||null}
 function showConnection(text,ok){$('connection').textContent=text;$('connection').style.color=ok?'var(--lime)':'var(--amber)'}
 function resetListeners(){unsub.forEach(fn=>fn());unsub=[]}
+
 function setRoom(code, host) {
   resetListeners();
   roomCode = code;
@@ -176,12 +177,18 @@ function setRoom(code, host) {
 
   // Generate Invite URL and Neon-Red QR Code
   const joinUrl = `${window.location.origin}${window.location.pathname}?room=${code}`;
-  if ($('roomLinkInput'))$('roomLinkInput').value = joinUrl;
-  if ($('roomQrCode')) {$('roomQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(joinUrl)}&color=FF3131&bgcolor=000000&margin=6`;
+  if ($('roomLinkInput')) $('roomLinkInput').value = joinUrl;
+  
+  const qrEl = $('roomQrCode') || $('qrCodeImg');
+  if (qrEl) {
+    qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(joinUrl)}&color=FF3131&bgcolor=000000&margin=6`;
+    qrEl.style.display = 'block';
   }
 
   page('lobby');
-}function roomPath(part=''){return `rooms/${roomCode}${part?'/'+part:''}`}
+}
+
+function roomPath(part=''){return `rooms/${roomCode}${part?'/'+part:''}`}
 
 // --- Direct DOM Animation Trigger ---
 let lastProcessedEventId = null;
@@ -571,7 +578,6 @@ function drawGame(){
   $('myTeamAction').innerHTML=opts;
   $('myTeamAction').value=uid;
 
-  // FIXED: Added missing closing parenthesis on $('teamSelect')
   const selected=teams[$('teamSelect').value||uid];
   $('selectedRoster').innerHTML=selected?.roster?.length?selected.roster.map(x=>`<div class="entry"><b class="grow">${escapeHtml(x.name)}</b><b class="lime">${cash(x.price)}</b></div>`).join(''):'<p class="help">No players bought yet.</p>';
 
@@ -827,9 +833,20 @@ async function leaveRoom(){if(!roomCode)return resetToHome();try{if(isHost){awai
 $('createRoom').onclick=createRoom;
 $('joinRoom').onclick=joinRoom;
 $('startAuction').onclick=startAuction;
-$('copyCode').onclick=async()=>{try{await navigator.clipboard.writeText(roomCode);toast('Room code copied.')}catch{toast('Room code: '+roomCode)}};$('copyLink').onclick=async()=>{
-  const link = $('roomLinkInput').value;
-  try {
+$('copyCode').onclick=async()=>{try{await navigator.clipboard.writeText(roomCode);toast('Room code copied.')}catch{toast('Room code: '+roomCode)}};
+
+if ($('copyLink')) {
+  $('copyLink').onclick = async () => {
+    const link = $('roomLinkInput')?.value || `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast('Invite link copied!');
+    } catch {
+      toast('Invite link: ' + link);
+    }
+  };
+}
+
 $('leaveLobby').onclick=leaveRoom;
 $('leaveGame').onclick=leaveRoom;
 $('bidButton').onclick=()=>sendAction('bid');
@@ -856,12 +873,21 @@ auctionMusic.onpause=()=>{$('musicToggle').textContent='▶ Play music'};
 auctionMusic.onerror=()=>{$('musicState').textContent='Could not load song'}; 
 auctionMusic.onended=()=>{resumeAuctionMusic=true;if(isHost)advanceAuctionMusic().catch(e=>say('gameMessage',friendly(e),true))};
 
+// Auto-fill room code when someone opens an invite link or scans the QR code
+const urlParams = new URLSearchParams(window.location.search);
+const invitedRoom = cleanCode(urlParams.get('room'));
+if (invitedRoom.length === 6 && $('roomCodeInput')) {
+  $('roomCodeInput').value = invitedRoom;
+  toast('Room code ' + invitedRoom + ' loaded! Enter your name & team to join.');
+}
+
 if(appReady){
-  ensureAuth().then(async()=>{showConnection('Guest ready',true);await restoreRoom()}).catch(e=>{showConnection('Offline',false);say('message',friendly(e),true)})
+  ensureAuth().then(async()=>{showConnection('Guest ready',true);await restoreRoom()}).catch(e=>{showConnection('Offline',false);say('message',friendly(e),true)});
 }else{
   showConnection('Setup needed',false);
-  say('message','The live app needs a Firebase project. Follow README.txt.',true)
+  say('message','The live app needs a Firebase project. Follow README.txt.',true);
 }
+
 $('sendChatBtn').onclick = sendChatMessage;
 $('chatInput').onkeydown = (e) => {
   if (e.key === 'Enter') {
