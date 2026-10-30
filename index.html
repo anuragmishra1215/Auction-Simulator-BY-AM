@@ -120,9 +120,42 @@ button.secondary:hover {
 *{box-sizing:border-box}body{margin:0;background:#000000;color:var(--ink);font:15px/1.45 system-ui,Segoe UI,sans-serif}.wrap{max-width:1160px;margin:auto;padding:22px}header,.between,.row,.team,.entry{display:flex;align-items:center;gap:12px}.between{justify-content:space-between}.brand{font-weight:900;font-size:19px}.mark{background:var(--lime);color:#000000;border-radius:12px;padding:9px 12px}.sub,.help,small{color:var(--muted)}.card{background:linear-gradient(145deg,#161616,#0a0a0a);border:1px solid var(--line);border-radius:18px;padding:20px;margin:12px 0}.screen{display:none}.screen.on{display:block}.hero{max-width:800px;margin:4vh auto}.hero h1{font-size:clamp(38px,7vw,56px);line-height:1.02;margin:8px 0;letter-spacing:-2px}.lime{color:var(--lime)}.eyebrow{color:var(--lime);font-weight:850;letter-spacing:1.5px;font-size:12px}button{border:0;border-radius:11px;padding:12px 16px;font-weight:800;cursor:pointer;background:var(--lime);color:#000000}button.secondary{background:#161616;color:var(--ink);border:1px solid var(--line)}button.danger{background:#49262d;color:#ffd0d0;border:1px solid #74424a}button:disabled{opacity:.4;cursor:not-allowed}input,select{background:#0a0a0a;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:11px;width:100%;font:inherit}.field{display:block;margin:10px 0;color:#c7d0d6;font-size:13px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}.pill{border:1px solid var(--line);padding:7px 10px;border-radius:20px;color:var(--muted);font-size:12px;white-space:nowrap}.team{justify-content:space-between;background:#161616;border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0}.team input{width:min(32%,220px)}.auction{display:grid;grid-template-columns:1.4fr .9fr;gap:12px}.flag{font-size:36px;position:relative;z-index:1;margin-bottom:4px}.profile h2{font-size:clamp(28px,4vw,38px);margin:6px 0;position:relative;z-index:1}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:14px;position:relative;z-index:1}.stat{background:#0a0a0aaa;border:1px solid var(--line);border-radius:9px;padding:9px}.stat b{display:block}.price{text-align:center;font-size:36px;font-weight:900;color:var(--lime);margin:12px}.controls{text-align:center}.controls button{margin:4px}.list{max-height:440px;overflow:auto}.entry{background:#161616;border:1px solid var(--line);border-radius:10px;padding:9px;margin:7px 0}.grow{flex:1}.avatar{width:38px;height:38px;border-radius:10px;background:#222222;display:grid;place-items:center;font-size:20px}.modal{position:fixed;inset:0;background:#000b;display:none;place-items:center;padding:18px;z-index:9}.modal.open{display:grid}.modalbox{background:#161616;border:1px solid var(--line);border-radius:18px;padding:20px;width:min(720px,100%);max-height:88vh;overflow:auto}.tabs{display:flex;gap:8px;margin-bottom:12px}.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--lime);color:#000000;padding:11px 17px;border-radius:10px;display:none;font-weight:800;z-index:12;max-width:90vw}.toast.show{display:block}.error{color:var(--red)}.statusline{min-height:22px;color:var(--muted);font-size:13px}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar>*{flex:1;min-width:160px}.count{color:var(--amber)}.music-controls{margin:12px 0;padding:12px 16px}.music-controls .row{align-items:center;flex-wrap:wrap;justify-content:flex-end}.music-controls select{width:min(280px,100%);flex:1 1 180px}.music-controls button{flex:none}.music-controls .field{flex:none}.music-controls input[type=range]{width:120px;padding:0;accent-color:var(--lime)}@media(max-width:760px){.auction,.cols{grid-template-columns:1fr}.hero{margin-top:2vh}.team{flex-wrap:wrap}.team input{width:calc(50% - 8px);flex:1}.stats{grid-template-columns:1fr 1fr}.topactions{display:flex;flex-wrap:wrap}}
 </style></head><body><main class="wrap"><header><div class="mark">CA</div><div class="brand">CRICKET AUCTION<div class="sub">Live rooms · Build your playing XI</div></div><span id="connection" class="pill" style="margin-left:auto">Connecting…</span></header>
 <section id="home" class="screen on"><div class="card hero"><div class="eyebrow">PLAY TOGETHER, FROM YOUR PHONES</div><h1>Your cricket auction.<br>Your <span class="lime">team.</span></h1><p class="help">Create a room, share its code, and bid live with 2–8 players. Every team starts with ₹80 crore and builds an 11-player squad.</p><div class="cols"><div class="card"><h3>Create a room</h3><label class="field">Your name<input id="hostName" maxlength="24" placeholder="Your name"></label><label class="field">Your team name<input id="hostTeam" maxlength="24" placeholder="Your team name"></label><button id="createRoom">Create room</button></div><div class="card"><h3>Join a room</h3><label class="field">Room code<input id="roomCodeInput" maxlength="6" placeholder="6-character code" autocomplete="off"></label><label class="field">Your name<input id="joinName" maxlength="24" placeholder="Your name"></label><label class="field">Your team name<input id="joinTeam" maxlength="24" placeholder="Your team name"></label><button id="joinRoom" class="secondary">Join room</button></div></div><p id="message" class="statusline"></p><p class="help">No account required. Players join as guests with a room code.</p></div></section>
-<section id="lobby" class="screen"><div class="card"><div class="between"><div><div class="eyebrow">ROOM LOBBY</div><h2 style="margin:4px 0">Invite your players</h2></div><div class="pill">CODE <b id="codeDisplay" style="color:var(--lime);letter-spacing:2px"></b> <button id="copyCode" class="secondary" style="padding:5px 8px">Copy</button></div></div><p class="help">Share the code. The auction starts when 2–8 players have joined.</p><div id="lobbyPlayers" class="list"></div><div class="row" style="margin-top:14px"><button id="startAuction">Start auction</button><button id="leaveLobby" class="secondary">Leave room</button></div><p id="lobbyMessage" class="statusline"></p></div></section>
+<section id="lobby" class="screen">
+  <div class="card">
+    <div class="between">
+      <div>
+        <div class="eyebrow">ROOM LOBBY</div>
+        <h2 style="margin:4px 0">Invite your players</h2>
+      </div>
+      <div class="pill">
+        CODE <b id="codeDisplay" style="color:var(--lime);letter-spacing:2px"></b>
+        <button id="copyCode" class="secondary" style="padding:5px 8px">Copy</button>
+      </div>
+    </div>
+    <p class="help">Share the code, link, or QR code below. The auction starts when 2–8 players have joined.</p>
+    
+    <div id="lobbyPlayers" class="list"></div>
 
-<section id="game" class="screen">
+    <!-- Invite Link & QR Code Panel -->
+    <div class="card" style="background:#0a0a0a; border:1px dashed var(--line); margin-top:16px; text-align:center;">
+      <div class="eyebrow" style="margin-bottom:10px;">INSTANT JOIN · LINK & QR CODE</div>
+      <div class="row" style="justify-content:center; flex-wrap:wrap; max-width:520px; margin:0 auto 16px auto;">
+        <input id="roomLinkInput" readonly style="flex:1; min-width:200px; text-align:center; font-size:13px; color:var(--lime); background:#161616; cursor:pointer;" title="Click to copy">
+        <button id="copyLink" class="secondary" style="padding:10px 14px; flex:none;">🔗 Copy Link</button>
+      </div>
+      <div style="display:inline-block; padding:12px; background:#000000; border:2px solid var(--lime); border-radius:16px; box-shadow:0 0 25px rgba(255,49,49,0.2);">
+        <img id="roomQrCode" alt="Room QR Code" style="width:160px; height:160px; display:block; border-radius:8px;">
+      </div>
+      <div class="sub" style="font-size:12px; margin-top:8px;">Scan with phone camera to join room automatically</div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button id="startAuction">Start auction</button>
+      <button id="leaveLobby" class="secondary">Leave room</button>
+    </div>
+    <p id="lobbyMessage" class="statusline"></p>
+  </div>
+</section><section id="game" class="screen">
   <div class="between">
     <div>
       <div class="eyebrow">LIVE AUCTION</div>
