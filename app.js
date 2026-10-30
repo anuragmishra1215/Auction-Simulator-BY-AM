@@ -126,7 +126,7 @@ const AUCTION_TRACKS = [
   {id:'mumbai-indians',file:'mumbai-indians.mp3',label:'Mumbai Indians Theme'}, {id:'ipl-stadium-song',file:'ipl-stadium-song.mp3',label:'New IPL Stadium Song'}
 ];
 
-function shuffledTrackIds(avoidFirst=null){const ids=AUCTION_TRACKS.map(t=>t.id);for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]]}if(avoidFirst&&ids.length>1&&ids[0]===avoidFirst){const j=1+Math.floor(Math.random()*(ids.length-1));[ids[0],ids[j]]=[ids[j],ids[0]]}return ids}
+function shuffledTrackIds(avoidFirst=null){const ids=AUCTION_TRACKS.map(t=>t.id);for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]]}if(avoidFirst&&ids.length>1&&ids[0]===avoidFirst){const j=1+Math.floor(Math.random()*(ids.length-1));[ids[0],ids[j]]=[ids[j],ids[0]}return ids}
 
 const $ = (id) => document.getElementById(id);
 const flags = {India:'🇮🇳','South Africa':'🇿🇦','New Zealand':'🇳🇿',England:'🏴',Bangladesh:'🇧🇩','Sri Lanka':'🇱🇰',Pakistan:'🇵🇰','West Indies':'🏏',Australia:'🇦🇺'};
@@ -155,13 +155,11 @@ function resetListeners(){unsub.forEach(fn=>fn());unsub=[]}
 function setRoom(code,host){resetListeners();roomCode=code;isHost=host;roomState=null;members={};try{sessionStorage.setItem('cricketAuctionRoomCode',code)}catch{}listenRoom();$('codeDisplay').textContent=code;$('gameCode').textContent=code;page('lobby')}
 function roomPath(part=''){return `rooms/${roomCode}${part?'/'+part:''}`}
 
-// --- Reliable Animation Trigger System ---
+// --- Direct DOM Animation Trigger ---
 let lastProcessedEventId = null;
 
 function checkAndTriggerSaleAnimation(s) {
   if (!s) return;
-
-  // Check latest event marker from state
   const activeEvent = s.lastSale || s.lastUnsold;
   if (!activeEvent || activeEvent.eventId === lastProcessedEventId) return;
 
@@ -182,11 +180,14 @@ function triggerSoldSaleAnimation(playerName, teamName, finalPriceStr) {
 
   content.style.color = 'var(--lime)';
   content.innerHTML = `SOLD TO ${teamName.toUpperCase()}!<br><span style="font-size: 0.5em; color: #fff;">${playerName} · ${finalPriceStr}</span>`;
+  
+  overlay.style.display = 'flex';
   overlay.classList.add('active');
   animateCardToTarget('currentProfile', 'selectedRoster');
 
   setTimeout(() => {
     overlay.classList.remove('active');
+    overlay.style.display = 'none';
   }, 2200);
 }
 
@@ -197,10 +198,13 @@ function triggerUnsoldAnimation(playerName) {
 
   content.style.color = '#FF4444';
   content.innerHTML = `UNSOLD<br><span style="font-size: 0.5em; color: #aaa;">${playerName} goes abegging</span>`;
+  
+  overlay.style.display = 'flex';
   overlay.classList.add('active');
 
   setTimeout(() => {
     overlay.classList.remove('active');
+    overlay.style.display = 'none';
   }, 1800);
 }
 
@@ -539,7 +543,8 @@ function drawGame(){
   $('myTeamAction').innerHTML=opts;
   $('myTeamAction').value=uid;
 
-  const selected=teams[$('teamSelect'].value||uid];
+  // FIXED: Added missing closing parenthesis on $('teamSelect')
+  const selected=teams[$('teamSelect').value||uid];
   $('selectedRoster').innerHTML=selected?.roster?.length?selected.roster.map(x=>`<div class="entry"><b class="grow">${escapeHtml(x.name)}</b><b class="lime">${cash(x.price)}</b></div>`).join(''):'<p class="help">No players bought yet.</p>';
 
   if(!p){
