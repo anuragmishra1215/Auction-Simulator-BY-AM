@@ -155,15 +155,30 @@ function resetListeners(){unsub.forEach(fn=>fn());unsub=[]}
 function setRoom(code,host){resetListeners();roomCode=code;isHost=host;roomState=null;members={};try{sessionStorage.setItem('cricketAuctionRoomCode',code)}catch{}listenRoom();$('codeDisplay').textContent=code;$('gameCode').textContent=code;page('lobby')}
 function roomPath(part=''){return `rooms/${roomCode}${part?'/'+part:''}`}
 
-// --- Automatic Sale Celebration & Flying Animation Trigger ---
+// --- Automatic Sale & Unsold Celebration Triggers ---
 let lastProcessedIndex = -1;
+let lastUnsoldIndex = -1;
+
 function checkAndTriggerSaleAnimation(s) {
-  if (!s || !s.lastSale) return;
-  const currentSaleKey = s.currentIndex + '-' + s.lastSale.playerId + '-' + s.lastSale.price;
-  if (lastProcessedIndex !== currentSaleKey) {
-    lastProcessedIndex = currentSaleKey;
-    const teamName = s.teams[s.lastSale.uid]?.team || 'Team';
-    triggerSoldSaleAnimation(s.lastSale.playerName, teamName, cash(s.lastSale.price));
+  if (!s) return;
+
+  // 1. Handle Sold Animation
+  if (s.lastSale) {
+    const currentSaleKey = s.currentIndex + '-' + s.lastSale.playerId + '-' + s.lastSale.price;
+    if (lastProcessedIndex !== currentSaleKey) {
+      lastProcessedIndex = currentSaleKey;
+      const teamName = s.teams[s.lastSale.uid]?.team || 'Team';
+      triggerSoldSaleAnimation(s.lastSale.playerName, teamName, cash(s.lastSale.price));
+    }
+  }
+
+  // 2. Handle Unsold Animation
+  if (s.lastUnsold) {
+    const currentUnsoldKey = s.currentIndex + '-' + s.lastUnsold.playerId;
+    if (lastUnsoldIndex !== currentUnsoldKey) {
+      lastUnsoldIndex = currentUnsoldKey;
+      triggerUnsoldAnimation(s.lastUnsold.playerName);
+    }
   }
 }
 
@@ -172,6 +187,7 @@ function triggerSoldSaleAnimation(playerName, teamName, finalPriceStr) {
   const content = document.getElementById('soldAnnouncementContent');
   if (!overlay || !content) return;
 
+  content.style.color = 'var(--lime)';
   content.innerHTML = `SOLD TO ${teamName.toUpperCase()}!<br><span style="font-size: 0.5em; color: #fff;">${playerName} · ${finalPriceStr}</span>`;
   overlay.classList.add('active');
   animateCardToTarget('currentProfile', 'selectedRoster');
@@ -179,6 +195,20 @@ function triggerSoldSaleAnimation(playerName, teamName, finalPriceStr) {
   setTimeout(() => {
     overlay.classList.remove('active');
   }, 2200);
+}
+
+function triggerUnsoldAnimation(playerName) {
+  const overlay = document.getElementById('celebrationOverlay');
+  const content = document.getElementById('soldAnnouncementContent');
+  if (!overlay || !content) return;
+
+  content.style.color = '#FF4444';
+  content.innerHTML = `UNSOLD<br><span style="font-size: 0.5em; color: #aaa;">${playerName} goes abegging</span>`;
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    overlay.classList.remove('active');
+  }, 1800);
 }
 
 function animateCardToTarget(sourceId, targetId) {
@@ -306,6 +336,8 @@ function fillIncompleteTeams(s){
 }
 
 function nextPlayer(s){
+  delete s.lastSale;
+  delete s.lastUnsold;
   if(allTeamsComplete(s)){
     s.status='complete';
     s.currentIndex=s.order.length;
@@ -329,10 +361,20 @@ function finishPlayer(s, skip) {
   const playerId = s.order[s.currentIndex], buyer = s.highBidder;
   if (skip || buyer === null) {
     s.skipped[playerId] = true;
+    s.lastUnsold = {
+      playerId,
+      playerName: PLAYER_LIST[playerId].name
+    };
+    delete s.lastSale;
   } else {
     const t = s.teams[buyer];
     if (!t || t.budget < s.currentBid || (Array.isArray(t.roster) ? t.roster.length : 0) >= 11) {
       s.skipped[playerId] = true;
+      s.lastUnsold = {
+        playerId,
+        playerName: PLAYER_LIST[playerId].name
+      };
+      delete s.lastSale;
     } else {
       if (!Array.isArray(t.roster)) t.roster = [];
       t.budget -= s.currentBid;
@@ -341,6 +383,7 @@ function finishPlayer(s, skip) {
         name: PLAYER_LIST[playerId].name,
         price: s.currentBid
       });
+      delete s.lastUnsold;
       s.lastSale = {
         playerId,
         uid: buyer,
