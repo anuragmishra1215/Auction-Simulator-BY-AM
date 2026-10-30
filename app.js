@@ -126,7 +126,18 @@ const AUCTION_TRACKS = [
   {id:'mumbai-indians',file:'mumbai-indians.mp3',label:'Mumbai Indians Theme'}, {id:'ipl-stadium-song',file:'ipl-stadium-song.mp3',label:'New IPL Stadium Song'}
 ];
 
-function shuffledTrackIds(avoidFirst=null){const ids=AUCTION_TRACKS.map(t=>t.id);for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]]}if(avoidFirst&&ids.length>1&&ids[0]===avoidFirst){const j=1+Math.floor(Math.random()*(ids.length-1));[ids[0],ids[j]]=[ids[j],ids[0]}return ids}
+function shuffledTrackIds(avoidFirst=null){
+  const ids = AUCTION_TRACKS.map(t => t.id);
+  for(let i = ids.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+  }
+  if(avoidFirst && ids.length > 1 && ids[0] === avoidFirst){
+    const j = 1 + Math.floor(Math.random() * (ids.length - 1));
+    [ids[0], ids[j]] = [ids[j], ids[0]]; // Fixed: added closing bracket here
+  }
+  return ids;
+}}
 
 const $ = (id) => document.getElementById(id);
 const flags = {India:'🇮🇳','South Africa':'🇿🇦','New Zealand':'🇳🇿',England:'🏴',Bangladesh:'🇧🇩','Sri Lanka':'🇱🇰',Pakistan:'🇵🇰','West Indies':'🏏',Australia:'🇦🇺'};
