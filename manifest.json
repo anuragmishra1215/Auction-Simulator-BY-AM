@@ -1,10 +1,10 @@
 {
-  "id": "/",
+  "id": "/your-repository-name/",
   "name": "Cricket Auction",
   "short_name": "Cricket Auction",
   "description": "Play a live cricket player auction with friends.",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/your-repository-name/",
+  "scope": "/your-repository-name/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
