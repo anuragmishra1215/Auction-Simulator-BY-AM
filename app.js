@@ -163,8 +163,25 @@ function cash(lakh){if(lakh<100)return '₹'+(lakh/100).toFixed(2).replace(/0$/,
 function currentPlayer(s=roomState){if(!s||!s.order||s.currentIndex>=s.order.length)return null;return PLAYER_LIST[s.order[s.currentIndex]]||null}
 function showConnection(text,ok){$('connection').textContent=text;$('connection').style.color=ok?'var(--lime)':'var(--amber)'}
 function resetListeners(){unsub.forEach(fn=>fn());unsub=[]}
-function setRoom(code,host){resetListeners();roomCode=code;isHost=host;roomState=null;members={};try{sessionStorage.setItem('cricketAuctionRoomCode',code)}catch{}listenRoom();$('codeDisplay').textContent=code;$('gameCode').textContent=code;page('lobby')}
-function roomPath(part=''){return `rooms/${roomCode}${part?'/'+part:''}`}
+function setRoom(code, host) {
+  resetListeners();
+  roomCode = code;
+  isHost = host;
+  roomState = null;
+  members = {};
+  try { sessionStorage.setItem('cricketAuctionRoomCode', code); } catch {}
+  listenRoom();
+  $('codeDisplay').textContent = code;
+  $('gameCode').textContent = code;
+
+  // Generate Invite URL and Neon-Red QR Code
+  const joinUrl = `${window.location.origin}${window.location.pathname}?room=${code}`;
+  if ($('roomLinkInput'))$('roomLinkInput').value = joinUrl;
+  if ($('roomQrCode')) {$('roomQrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(joinUrl)}&color=FF3131&bgcolor=000000&margin=6`;
+  }
+
+  page('lobby');
+}function roomPath(part=''){return `rooms/${roomCode}${part?'/'+part:''}`}
 
 // --- Direct DOM Animation Trigger ---
 let lastProcessedEventId = null;
@@ -810,7 +827,9 @@ async function leaveRoom(){if(!roomCode)return resetToHome();try{if(isHost){awai
 $('createRoom').onclick=createRoom;
 $('joinRoom').onclick=joinRoom;
 $('startAuction').onclick=startAuction;
-$('copyCode').onclick=async()=>{try{await navigator.clipboard.writeText(roomCode);toast('Room code copied.')}catch{toast('Room code: '+roomCode)}};
+$('copyCode').onclick=async()=>{try{await navigator.clipboard.writeText(roomCode);toast('Room code copied.')}catch{toast('Room code: '+roomCode)}};$('copyLink').onclick=async()=>{
+  const link = $('roomLinkInput').value;
+  try {
 $('leaveLobby').onclick=leaveRoom;
 $('leaveGame').onclick=leaveRoom;
 $('bidButton').onclick=()=>sendAction('bid');
